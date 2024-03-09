@@ -67,6 +67,18 @@ def main():
         elif command == "change":
             print(change_contact(args, book))
 
+        # TODO: finish this realization
+        elif command == "add-birthday":
+            print(add_birthday(args, book))
+
+        # TODO: finish this realization
+        elif command == "show-birthday":
+            print(show_birthday(args, book))
+
+        # TODO: finish this realization
+        elif command == "birthdays":
+            print(birthdays(args, book))
+
         elif command == "phone":
             print(get_phone(args, book))
 

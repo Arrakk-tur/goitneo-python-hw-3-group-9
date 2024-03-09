@@ -1,4 +1,5 @@
-from collections import UserDict
+from collections import UserDict, defaultdict
+from datetime import datetime
 
 
 class Field:
@@ -24,10 +25,20 @@ class Phone(Field):
             raise ValueError("Phone number should contained 10 digits")
 
 
+class Birthday(Field):
+    def __init__(self, value):
+        super().__init__(value)
+
+    def validate(self):
+        # TODO: finish this realization
+        pass
+
+
 class Record:
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
+        self.birthday = ""
 
     def add_phone(self, phone):
         new_phone = Phone(phone)
@@ -66,3 +77,26 @@ class AddressBook(UserDict):
         if name not in self.data:
             raise ValueError("Contact not found.")
         del self.data[name]
+
+    # TODO: finish this realization
+
+    def get_birthdays_per_week(self, users):
+        today = datetime.today().date()
+        res = defaultdict(list)
+        for user in users:
+            name = user["name"]
+            birthday = user["birthday"].date()
+            birthday_this_year = birthday.replace(year=today.year)
+            if birthday_this_year > today:
+                birthday_this_year.replace(year=today.year + 1)
+                delta_days = (birthday_this_year - today).days
+                if delta_days < 7:
+                    birthday_week_day = birthday_this_year.strftime("%A")
+                    if birthday_week_day == ("Sunday" or "Saturday"):
+                        res["Monday"].append(name)
+                    else:
+                        res[birthday_week_day].append(name)
+
+        for key, value in res.items():
+            birth_name = ", ".join(value)
+            print(f"{key}: {birth_name}")
