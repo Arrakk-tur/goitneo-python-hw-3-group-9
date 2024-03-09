@@ -9,6 +9,8 @@ def input_error(func):
             return str(e)
         except SyntaxError:
             return "Give me name and phone please. Use spaces to separate your command."
+        except IndexError:
+            return "Not enough arguments"
 
     return inner
 
@@ -30,14 +32,10 @@ def add_contact(args, contacts):
 
 @input_error
 def change_contact(args, contacts):
-    name, phone = args
+    name, old_phone, new_phone = args
     record = contacts.find(name)
-
-    # TODO: finish this realization
-    old_phone = record
-
-    contacts[name] = phone
-    return f"Contact {name} changed."
+    record.edit_phone(old_phone=old_phone, new_phone=new_phone)
+    return f"Phone {old_phone} for contact {name} changed to {new_phone}."
 
 
 @input_error
@@ -46,9 +44,34 @@ def get_phone(args, contacts):
     return contacts[name]
 
 
+@input_error
+def add_birthday(args, contacts):
+    name, birthday = args
+    contacts[name].add_birthday(birthday)
+    return f"Birthday for {name} added."
+
+
+@input_error
+def show_birthday(args, contacts):
+    name = args[0]
+    record = contacts.find(name)
+    return record.get_birthday()
+
+
 def main():
     book = AddressBook()
-    print("Welcome to the assistant bot!")
+    print(
+        """Welcome to the assistant bot!
+    You can use commands:
+    - "add" - add a new contact,
+    - "change" - change a contact's phone number,
+    - "add-birthday" - add a contact's birthday,
+    - "show-birthday" - show a contact's birthday,
+    - "birthdays" - show birthdays of contacts for this week,
+    - "phone" - show a contact's phone number,
+    - "all" - show all contacts,
+    """
+    )
     while True:
         user_input = input("Enter a command: ")
         command, *args = parse_input(user_input)
@@ -63,21 +86,17 @@ def main():
         elif command == "add":
             print(add_contact(args, book))
 
-        # TODO: finish this realization
         elif command == "change":
             print(change_contact(args, book))
 
-        # TODO: finish this realization
         elif command == "add-birthday":
             print(add_birthday(args, book))
 
-        # TODO: finish this realization
         elif command == "show-birthday":
             print(show_birthday(args, book))
 
-        # TODO: finish this realization
         elif command == "birthdays":
-            print(birthdays(args, book))
+            book.get_birthdays_per_week()
 
         elif command == "phone":
             print(get_phone(args, book))

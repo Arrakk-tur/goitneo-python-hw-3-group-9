@@ -1,3 +1,4 @@
+import re
 from collections import UserDict, defaultdict
 from datetime import datetime
 
@@ -30,15 +31,20 @@ class Birthday(Field):
         super().__init__(value)
 
     def validate(self):
-        # TODO: finish this realization
-        pass
+        if (
+            re.match(
+                "^(3[01]|[12][0-9]|0?[1-9])\.(0[1-9]|1[1,2])\.(19|20)\d{2}", self.value
+            )
+            is None
+        ):
+            raise ValueError("Invalid date format. Must be 'DD.MM.YYYY'")
 
 
 class Record:
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
-        self.birthday = ""
+        self.birthday = None
 
     def add_phone(self, phone):
         new_phone = Phone(phone)
@@ -57,6 +63,14 @@ class Record:
             if p.value == phone:
                 return p
         raise ValueError("Phone not found.")
+
+    def add_birthday(self, birthday):
+        self.birthday = Birthday(birthday)
+        self.birthday.validate()
+        self.birthday = datetime.strptime(birthday, "%d.%m.%Y")
+
+    def get_birthday(self):
+        return f"Contact name: {self.name.value} have birthday: {self.birthday.strftime('%d.%m.%Y')}"
 
     def __str__(self):
         return f"Contact name: {self.name.value} have phones: {'; '.join(p.value for p in self.phones)}"
@@ -78,24 +92,23 @@ class AddressBook(UserDict):
             raise ValueError("Contact not found.")
         del self.data[name]
 
-    # TODO: finish this realization
-
-    def get_birthdays_per_week(self, users):
+    def get_birthdays_per_week(self):
         today = datetime.today().date()
         res = defaultdict(list)
-        for user in users:
-            name = user["name"]
-            birthday = user["birthday"].date()
-            birthday_this_year = birthday.replace(year=today.year)
-            if birthday_this_year > today:
-                birthday_this_year.replace(year=today.year + 1)
+
+        for name, record in self.data.items():
+            if record.birthday:
+                birthday = record.birthday.date()
+                birthday_this_year = birthday.replace(year=today.year)
+                if birthday_this_year < today:
+                    birthday_this_year = birthday_this_year.replace(year=today.year + 1)
                 delta_days = (birthday_this_year - today).days
                 if delta_days < 7:
                     birthday_week_day = birthday_this_year.strftime("%A")
                     if birthday_week_day == ("Sunday" or "Saturday"):
-                        res["Monday"].append(name)
+                        res["Monday"].append(record.name.value)
                     else:
-                        res[birthday_week_day].append(name)
+                        res[birthday_week_day].append(record.name.value)
 
         for key, value in res.items():
             birth_name = ", ".join(value)
